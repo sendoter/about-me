@@ -38,17 +38,35 @@ const App = () => {
   const handleSmoothScroll = (e, id) => {
     e.preventDefault();
     const element = document.getElementById(id);
-    if (element) {
-      // Calculate position including offset for fixed header
-      const offset = 100;
-      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-      const offsetPosition = elementPosition - offset;
+    if (!element) return;
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
+    const offset = 100;
+    const bodyRect = document.body.getBoundingClientRect().top;
+    const elementRect = element.getBoundingClientRect().top;
+    const elementPosition = elementRect - bodyRect;
+    const offsetPosition = elementPosition - offset;
+
+    const startPosition = window.pageYOffset;
+    const distance = offsetPosition - startPosition;
+    const duration = 2500; // Duration in milliseconds
+    let start = null;
+
+    // Easing function: Quintic Out (very smooth deceleration)
+    const easeOutQuint = (t) => 1 + --t * t * t * t * t;
+
+    const step = (timestamp) => {
+      if (!start) start = timestamp;
+      const progress = timestamp - start;
+      const percentage = Math.min(progress / duration, 1);
+
+      window.scrollTo(0, startPosition + distance * easeOutQuint(percentage));
+
+      if (progress < duration) {
+        window.requestAnimationFrame(step);
+      }
+    };
+
+    window.requestAnimationFrame(step);
   };
 
   // --- Data & Content ---
@@ -88,7 +106,7 @@ const App = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-slate-900 dark:text-gray-100 transition-colors duration-300 font-sans selection:bg-blue-200 dark:selection:bg-blue-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] bg-[size:20px_20px]">
 
       {/* --- Navbar --- */}
       <nav className="fixed top-0 w-full z-50 bg-gray-50/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-800">
@@ -117,9 +135,8 @@ const App = () => {
           </p>
           <div>
             <a
-              href="#contact"
               onClick={(e) => handleSmoothScroll(e, 'contact')}
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-all hover:scale-105 shadow-lg shadow-blue-500/20"
+              className="cursor-pointer inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition-all hover:scale-105 shadow-lg shadow-blue-500/20"
             >
               Let’s work together
             </a>
